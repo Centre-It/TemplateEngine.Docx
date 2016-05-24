@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -18,19 +19,26 @@ namespace TemplateEngine.Docx
         private readonly WordprocessingDocument _wordDocument;
 	    private bool _isNeedToRemoveContentControls;
 	    private bool _isNeedToNoticeAboutErrors;
+        public Stream Stream { get; set; }
 
-        public TemplateProcessor(string fileName)
+        private TemplateProcessor(WordprocessingDocument wordDocument)
         {
-            _wordDocument = WordprocessingDocument.Open(fileName, true);
-			_isNeedToNoticeAboutErrors = true;
+            _wordDocument = wordDocument;
+            _isNeedToNoticeAboutErrors = true;
 
-			Document = LoadPart(_wordDocument.MainDocumentPart);
-	        NumberingPart = LoadPart(_wordDocument.MainDocumentPart.NumberingDefinitionsPart);
-	        StylesPart = LoadPart(_wordDocument.MainDocumentPart.StyleDefinitionsPart);
-
+            Document = LoadPart(_wordDocument.MainDocumentPart);
+            NumberingPart = LoadPart(_wordDocument.MainDocumentPart.NumberingDefinitionsPart);
+            StylesPart = LoadPart(_wordDocument.MainDocumentPart.StyleDefinitionsPart);
         }
 
-		public TemplateProcessor(XDocument templateSource, XDocument stylesPart = null, XDocument numberingPart = null)
+        public TemplateProcessor(string fileName) : this(WordprocessingDocument.Open(fileName, true)) {}
+
+        public TemplateProcessor(Stream stream) : this(WordprocessingDocument.Open(stream, true))
+        {
+            Stream = stream;
+        }
+
+        public TemplateProcessor(XDocument templateSource, XDocument stylesPart = null, XDocument numberingPart = null)
 		{
 			_isNeedToNoticeAboutErrors = true;
 
@@ -53,11 +61,13 @@ namespace TemplateEngine.Docx
 
 		    return part;
 	    }
+
 	    public TemplateProcessor SetRemoveContentControls(bool isNeedToRemove)
 	    {
 		    _isNeedToRemoveContentControls = isNeedToRemove;
 		    return this;
 	    }
+
 	    public TemplateProcessor SetNoticeAboutErrors(bool isNeedToNotice)
 	    {
 			_isNeedToNoticeAboutErrors = isNeedToNotice;
@@ -68,21 +78,32 @@ namespace TemplateEngine.Docx
         {
             if (Document == null) return;
 
-            // Serialize the XDocument object back to the package.
-            using (var xw = XmlWriter.Create(_wordDocument.MainDocumentPart.GetStream (FileMode.Create, FileAccess.Write)))
+            Func<OpenXmlPart, Stream> getStream = (part) => {
+                var resultStream = (Stream == null)
+                    ? part.GetStream(FileMode.Create, FileAccess.Write)
+                    : part.GetStream();
+
+                return resultStream;
+            };
+
+            var stream = (Stream)null; 
+            stream = getStream(_wordDocument.MainDocumentPart);
+            using (var writer = XmlWriter.Create(stream))
             {
-                Document.Save(xw);
+                stream.SetLength(0);
+                Document.Save(writer);
             }
 			
 	        if (NumberingPart != null)
 	        {
-				// Serialize the XDocument object back to the package.
-		        using (var xw = XmlWriter.Create(_wordDocument.MainDocumentPart.NumberingDefinitionsPart.GetStream(FileMode.Create,
-					        FileAccess.Write)))
+                stream = getStream(_wordDocument.MainDocumentPart.NumberingDefinitionsPart);
+                stream.SetLength(0);
+                using (var writer = XmlWriter.Create(stream))
 		        {
-			        NumberingPart.Save(xw);
-		        }
+			        NumberingPart.Save(writer);
+                }
 	        }
+
 	        _wordDocument.Close();
         }
 
