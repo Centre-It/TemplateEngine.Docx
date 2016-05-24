@@ -42,11 +42,31 @@ namespace TemplateEngine.Docx.Processors
 
 				var contentControls = FindContentControls(content, contentItems.Key).ToList();
 
-				//Need to get error message from processor.
-				if (!contentControls.Any())
-					contentControls.Add(null);
+			    var removeContentItem = contentItems.OfType<RemoveContent>().FirstOrDefault();
+                if (removeContentItem != null) {
+                    foreach (var ctrl in contentControls.ToList()) {
+                        if (ctrl.Parent == null
+                         || ctrl.Parent.Name.LocalName == "body"
+                         || removeContentItem.Options.DontRemoveParagraph
+                        ) {
+                            ctrl.Remove();
+                        }
+                        else {
+                            ctrl.Parent.Remove();
+                        }
+                        
+                        contentControls.Remove(ctrl);
+                    }
+                }
 
-				foreach (var xElement in contentControls)
+                //Need to get error message from processor.
+                if (!contentControls.Any()
+                 && removeContentItem == null
+                ) {
+                    contentControls.Add(null);
+                }
+
+                foreach (var xElement in contentControls)
 				{
 					if (contentItems.Any(item => item is TableContent) && xElement != null)								
 						processedItems.AddRange(ProcessTableFields(data.OfType<FieldContent>(), xElement));

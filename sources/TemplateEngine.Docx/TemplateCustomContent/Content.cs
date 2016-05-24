@@ -21,13 +21,19 @@ namespace TemplateEngine.Docx
 			{
 				yield return listContent;
 			}
+
 			foreach (var fieldContent in Fields)
 			{
 				yield return fieldContent;
 			}
-		}
 
-		IEnumerator IEnumerable.GetEnumerator()
+            foreach (var removeContent in Removes) {
+                yield return removeContent;
+            }
+
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
 		}

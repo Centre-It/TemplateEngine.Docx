@@ -11,7 +11,8 @@ namespace TemplateEngine.Docx
 				Lists = contentItems.OfType<ListContent>().ToList();
 				Tables = contentItems.OfType<TableContent>().ToList();
 				Fields = contentItems.OfType<FieldContent>().ToList();
-			}
+                Removes = contentItems.OfType<RemoveContent>().ToList();
+            }
 		}
 
 		private IEnumerable<IContentItem> All
@@ -22,16 +23,18 @@ namespace TemplateEngine.Docx
 				if (Tables != null) result = result.Concat(Tables).ToList();
 				if (Lists != null) result = result.Concat(Lists).ToList();
 				if (Fields != null) result = result.Concat(Fields).ToList();
+                if (Removes != null) result = result.Concat(Removes).ToList();
 
-				return result;
+                return result;
 			}
 		}
 
 		public ICollection<TableContent> Tables { get; set; }
 		public ICollection<ListContent> Lists { get; set; }
 		public ICollection<FieldContent> Fields { get; set; }
+        public ICollection<RemoveContent> Removes { get; set; }
 
-		public IContentItem GetContentItem(string name)
+        public IContentItem GetContentItem(string name)
 		{
 			var allFields = All.ToList();
 			if (allFields.Any(t => t.Name == name)) 
@@ -46,11 +49,12 @@ namespace TemplateEngine.Docx
 			{
 				return Tables == null
 					? null
-					: Tables.Select(t => t.Name).Concat(Tables.SelectMany(t => t.Rows.SelectMany(r => r.FieldNames)))
+					: Tables.Select(t => t.Name)
+                        .Concat(Tables.SelectMany(t => t.Rows.SelectMany(r => r.FieldNames)))
 						.Concat(Lists == null
 							? new List<string>()
 							: Lists.Select(l => l.Name).Concat(Lists.SelectMany(l => l.FieldNames)))
-						.Concat(Fields == null ? new List<string>() : Fields.Select(f => f.Name));
+						.Concat(Removes == null ? new List<string>() : Removes.Select(x => x.Name));
 			}
 		}
 

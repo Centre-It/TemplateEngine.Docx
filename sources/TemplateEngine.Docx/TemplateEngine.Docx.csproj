@@ -58,11 +58,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Processors\TableProcessor.cs" />
     <Compile Include="TemplateCustomContent\Content.cs" />
+    <Compile Include="TemplateCustomContent\RemoveContent.cs" />
     <Compile Include="TemplateCustomContent\FieldContent.cs" />
     <Compile Include="TemplateCustomContent\IContentItem.cs" />
     <Compile Include="TemplateCustomContent\Container.cs" />
     <Compile Include="TemplateCustomContent\ListContent.cs" />
     <Compile Include="TemplateCustomContent\ListItemContent.cs" />
+    <Compile Include="TemplateCustomContent\RemoveContentOptions.cs" />
     <Compile Include="TemplateCustomContent\TableContent.cs" />
     <Compile Include="TemplateCustomContent\TableRowContent.cs" />
     <Compile Include="TemplateProcessor.cs" />
