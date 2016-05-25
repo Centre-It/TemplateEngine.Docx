@@ -54,7 +54,8 @@ namespace TemplateEngine.Docx
 						.Concat(Lists == null
 							? new List<string>()
 							: Lists.Select(l => l.Name).Concat(Lists.SelectMany(l => l.FieldNames)))
-						.Concat(Removes == null ? new List<string>() : Removes.Select(x => x.Name));
+                        .Concat(Fields == null ? new List<string>() : Fields.Select(f => f.Name))
+                        .Concat(Removes == null ? new List<string>() : Removes.Select(x => x.Name));
 			}
 		}
 
